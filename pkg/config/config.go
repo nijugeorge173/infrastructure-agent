@@ -1196,7 +1196,7 @@ type Config struct {
 
 	// this is the default "persister" folder that the SDK uses. right now we don't allow configuration but we could at some point
 	// send this to the integrations for them to use for persisting data.
-	DefaultIntegrationsTempDir string
+	DefaultIntegrationsTempDir string `yaml:"default_integrations_temp_dir" envconfig:"default_integrations_temp_dir"`
 
 	// EnableProcessMetrics enables/disables process metrics, it does not enforce when not set.
 	// Default: empty
@@ -1259,8 +1259,8 @@ type Config struct {
 	// Default (MacOS AMD): /usr/local/var/db/newrelic-infra/tmp
 	// Default (MacOS ARM): /opt/homebrew/var/db/newrelic-infra/tmp
 	// Default (Windows): C:\ProgramData\New Relic\newrelic-infra\tmp
-	// Public: no
-	AgentTempDir string `yaml:"-" envconfig:"-"`
+	// Public: No
+	AgentTempDir string `envconfig:"agent_temp_dir" yaml:"agent_temp_dir"`
 }
 
 // KeyValMap is used whenever a key value pair configuration is required.
