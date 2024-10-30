@@ -258,7 +258,7 @@ func TestGroup_Run_ConfigPathUpdated(t *testing.T) {
 	defer cancel()
 	_ = group.Run(ctx)
 
-	// THEN the emitted config path from discovery is different each time
+	// THEN the emitted config path from discovery is not different each time
 	dataset, err := te.ReceiveFrom("cfgpath")
 	require.NoError(t, err)
 	metrics := dataset.DataSet.Metrics
@@ -278,7 +278,7 @@ func TestGroup_Run_ConfigPathUpdated(t *testing.T) {
 	require.NotEmpty(t, secondValue)
 	require.NotEqual(t, "${config.path}", secondValue)
 
-	assert.NotEqual(t, firstValue, secondValue)
+	assert.Equal(t, firstValue, secondValue)
 }
 
 func interceptGroupErrors(gr *Group) <-chan error {
@@ -400,6 +400,49 @@ func Test_parseLogrusFields(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			out := parseLogrusFields(tc.input)
+
+			for k, v := range tc.want {
+				val, ok := out[k]
+				assert.True(t, ok)
+				assert.Equal(t, v, val)
+			}
+		})
+	}
+}
+
+//nolint:paralleltest
+func Test_parseSDKFields(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		want  logrus.Fields
+	}{
+		"debug": {`[DEBUG] Temperature changes`, logrus.Fields{
+			"level": `debug`,
+			"msg":   `Temperature changes`,
+		}},
+		"info": {`[INFO] A group of walrus emerges from the ocean`, logrus.Fields{
+			"level": `info`,
+			"msg":   `A group of walrus emerges from the ocean`,
+		}},
+		"fatal": {`[FATAL] The ice breaks!`, logrus.Fields{
+			"level": `fatal`,
+			"msg":   `The ice breaks!`,
+		}},
+		"error": {`[ERR] Error creating connection to SQL Server: lookup mssql on 192.168.65.5:53: no such host`, logrus.Fields{
+			"level": `error`,
+			"msg":   `Error creating connection to SQL Server: lookup mssql on 192.168.65.5:53: no such host`,
+		}},
+		"with-escaped-quotes": {`[WARN] The group's number \"increased\" tremendously!`, logrus.Fields{
+			"level": `warn`,
+			"msg":   `The group's number \"increased\" tremendously!`,
+		}},
+
+		"not matching": {`simple line`, nil},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			out := parseSDKFields(tc.input)
 
 			for k, v := range tc.want {
 				val, ok := out[k]

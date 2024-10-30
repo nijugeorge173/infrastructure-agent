@@ -18,6 +18,13 @@ instances:
   ############################
   # ubuntu amd64
   ############################
+  - ami: "ami-09040d770ffe2224f"
+    type: "t3a.small"
+    name: "amd64:ubuntu24.04"
+    username: "ubuntu"
+    platform: "linux"
+    python_interpreter: "/usr/bin/python3"
+    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-0aeb7c931a5a61206"
     type: "t3a.small"
     name: "amd64:ubuntu22.04"
@@ -49,6 +56,13 @@ instances:
   ############################
   # ubuntu arm64
   ############################
+  - ami: "ami-0acb327475c6fd498"
+    type: "t4g.small"
+    name: "arm64:ubuntu24.04"
+    username: "ubuntu"
+    platform: "linux"
+    python_interpreter: "/usr/bin/python3"
+    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-0717cbd2f49a61ed0"
     type: "t4g.small"
     name: "arm64:ubuntu22.04"
@@ -80,20 +94,6 @@ instances:
   ############################
   # centos amd64
   ############################
-  - ami: "ami-00f8e2c955f7ffa9b"
-    type: "t3a.small"
-    name: "amd64:centos7"
-    username: "centos"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
-  - ami: "ami-0ac6967966621d983"
-    type: "t3a.small"
-    name: "amd64:centos8"
-    username: "centos"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python3"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-013f9ee48907190f5"
     type: "t3a.small"
     name: "amd64:centos-stream"
@@ -104,20 +104,6 @@ instances:
   ############################
   # centos arm64
   ############################
-  # - ami: "ami-07f692d95b2b9c8c5"
-  #   type: "t4g.small"
-  #   name: "arm64:centos7"
-  #   username: "centos"
-  #   platform: "linux"
-  #   python_interpreter: "/usr/bin/python"
-  #   launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
-  - ami: "ami-035734c938e7da7af"
-    type: "t4g.small"
-    name: "arm64:centos8"
-    username: "centos"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python3"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-0dce27ea07b1afb8f"
     type: "t4g.small"
     name: "arm64:centos-stream"
@@ -128,40 +114,12 @@ instances:
   ############################
   # sles amd64
   ############################
-  - ami: "ami-05fcf0a794c3b5994" # based on suse-sles-12-sp3-byos-v20220201-hvm-ssd-x86_64
-    type: "t3a.small"
-    name: "amd64:sles-12.3"
-    username: "ec2-user"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
-  - ami: "ami-0ff9876855bed84bd" # based on suse-sles-12-sp4-byos-v20220519-hvm-ssd-x86_64
-    type: "t3a.small"
-    name: "amd64:sles-12.4"
-    username: "ec2-user"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-0199192e7fdbb9b62" # based on suse-sles-12-sp5-v20230206-hvm-ssd-x86_64
     type: "t3a.small"
     name: "amd64:sles-12.5"
     username: "ec2-user"
     platform: "linux"
     python_interpreter: "/usr/bin/python"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
-  - ami: "ami-08441b51466d3bb43" # based on suse-sles-15-sp1-byos-v20220128-hvm-ssd-x86_64
-    type: "t3a.small"
-    name: "amd64:sles-15.1"
-    username: "ec2-user"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python3"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
-  - ami: "ami-0e44499c443e91acd" # based on suse-sles-15-sp2-byos-v20220128-hvm-ssd-x86_64
-    type: "t3a.small"
-    name: "amd64:sles-15.2"
-    username: "ec2-user"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python3"
     launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-0446c700e1dc61753" # based on suse-sles-15-sp3-v20210622-hvm-ssd-x86_64
     type: "t3a.small"
@@ -180,6 +138,13 @@ instances:
   - ami: "ami-0e03a27c1453107db" # based on suse-sles-15-sp5-v20230620-hvm-ssd-x86_64
     type: "t3a.small"
     name: "amd64:sles-15.5"
+    username: "ec2-user"
+    platform: "linux"
+    python_interpreter: "/usr/bin/python3"
+    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
+  - ami: "ami-0747e95148683f30f" # based on suse-sles-15-sp6-v20240808-hvm-ssd-x86_64
+    type: "t3a.small"
+    name: "amd64:sles-15.6"
     username: "ec2-user"
     platform: "linux"
     python_interpreter: "/usr/bin/python3"
@@ -208,16 +173,16 @@ instances:
     platform: "linux"
     python_interpreter: "/usr/bin/python3"
     launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
+  - ami: "ami-009a382796e6a08cb" # based on suse-sles-15-sp6-v20240808-hvm-ssd-arm64
+    type: "t4g.small"
+    name: "arm64:sles-15.6"
+    username: "ec2-user"
+    platform: "linux"
+    python_interpreter: "/usr/bin/python3"
+    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   ############################
   # redhat amd64
   ############################
-  - ami: "ami-0680f7cf1ea8cb793"
-    type: "t3a.small"
-    name: "amd64:redhat-7.9"
-    username: "ec2-user"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-0ba62214afa52bec7"
     type: "t3a.small"
     name: "amd64:redhat-8.4"
@@ -235,13 +200,6 @@ instances:
   ############################
   # redhat arm64
   ############################
-  - ami: "ami-0302c1ecc74930ba5"
-    type: "t4g.small"
-    name: "arm64:redhat-7.6"
-    username: "ec2-user"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-01089181b0aa3be51"
     type: "t4g.small"
     name: "arm64:redhat-9.0"
@@ -252,13 +210,6 @@ instances:
   ############################
   # debian amd64
   ############################
-  - ami: "ami-0f42acddbf04bd1b6"
-    type: "t3a.small"
-    name: "amd64:debian-buster"
-    username: "admin"
-    platform: "linux"
-    python_interpreter: "/usr/bin/python3"
-    launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   - ami: "ami-08a0dab67e025361b"
     type: "t3a.small"
     name: "amd64:debian-bullseye"
@@ -276,13 +227,6 @@ instances:
   ############################
   # debian arm64
   ############################
-  # - ami: "ami-07d2054a4befc97f7"
-  #   type: "t4g.small"
-  #   name: "arm64:debian-buster"
-  #   username: "admin"
-  #   platform: "linux"
-  #   python_interpreter: "/usr/bin/python3"
-  #   launch_template: "LaunchTemplateId=lt-0b00afb3f5110a0e6,Version=3"
   # - ami: "ami-03cabbbc935f5826f"
   #   type: "t4g.small"
   #   name: "arm64:debian-bullseye"
@@ -340,12 +284,6 @@ instances:
   ############################
   # windows amd64
   ############################
-  - ami: "ami-0c5d73971003d1ab0"
-    type: "t3a.small"
-    name: "amd64:windows_2012"
-    username: "ansible"
-    platform: "windows"
-    launch_template: "LaunchTemplateId=lt-005e12ef728c179bf,Version=3"
   - ami: "ami-03d46abfa414238dd"
     type: "t3a.small"
     name: "amd64:windows_2016"

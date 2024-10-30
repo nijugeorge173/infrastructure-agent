@@ -3,9 +3,12 @@
 //go:build linux
 // +build linux
 
+//nolint:revive
 package linux
 
-import . "gopkg.in/check.v1"
+import (
+	. "gopkg.in/check.v1"
+)
 
 type SELinuxSuite struct{}
 
@@ -101,10 +104,7 @@ awstats	1.2.0
 func (ss *SELinuxSuite) TestParseSEModules(c *C) {
 	plugin := SELinuxPlugin{}
 
-	result, err := plugin.parseSemoduleOutput(sampleSemoduleOutput)
-	if err != nil {
-		c.Fatal(err)
-	}
+	result := plugin.parseSemoduleOutput(sampleSemoduleOutput)
 
 	resultMap := make(map[string]string)
 	for _, entity := range result {
@@ -114,4 +114,43 @@ func (ss *SELinuxSuite) TestParseSEModules(c *C) {
 	c.Check(resultMap["aiccu"], Equals, "1.0.0")
 	c.Check(resultMap["audioentropy"], Equals, "1.6.0")
 	c.Check(len(resultMap), Equals, 17)
+}
+
+func (ss *SELinuxSuite) TestParseSEModulesEmptyVersionCheck(chk *C) {
+	//exhaustruct:ignore
+	plugin := SELinuxPlugin{}
+	var sampleSemoduleOutputWithoutVersions = `abrt
+	accountsd
+	ada
+	afs
+	aiccu
+	aide
+	amanda
+	amtu
+	antivirus
+	apache
+	apcupsd
+	arpwatch
+	asterisk
+	audioentropy
+	automount
+	avahi
+	awstats
+	`
+	result := plugin.parseSemoduleOutput(sampleSemoduleOutputWithoutVersions)
+
+	resultMap := make(map[string]string)
+	for _, entity := range result {
+		key := entity.SortKey()
+		seLinuxPolicyModule, ok := entity.(SELinuxPolicyModule)
+
+		if !ok {
+			chk.Fatal("error occurred!!")
+		}
+		resultMap[key] = seLinuxPolicyModule.Version
+	}
+
+	chk.Check(resultMap["abrt"], Equals, "")
+	chk.Check(resultMap["accountsd"], Equals, "")
+	chk.Check(len(resultMap), Equals, 17)
 }

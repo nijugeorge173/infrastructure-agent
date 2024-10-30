@@ -282,6 +282,7 @@ func initializeAgentAndRun(c *config.Config, logFwCfg config.LogForward) error {
 
 	v4ManagerConfig := v4.NewManagerConfig(
 		c.Log.VerboseEnabled(),
+		c.DefaultIntegrationsTempDir,
 		c.Features,
 		c.PassthroughEnvironment,
 		c.PluginInstanceDirs,
@@ -417,7 +418,7 @@ func initializeAgentAndRun(c *config.Config, logFwCfg config.LogForward) error {
 			// This should never happen, as the correct format is checked during NormalizeConfig.
 			aslog.WithError(err).Error("invalid startup_connection_timeout value, cannot run status server")
 		} else {
-			rep := status.NewReporter(agt.Context.Ctx, rlog, c.StatusEndpoints, timeoutD, transport, agt.Context.AgentIdnOrEmpty, agt.Context.EntityKey, c.License, userAgent)
+			rep := status.NewReporter(agt.Context.Ctx, rlog, c.StatusEndpoints, c.HealthEndpoint, timeoutD, transport, agt.Context.AgentIdnOrEmpty, agt.Context.EntityKey, c.License, userAgent)
 
 			apiSrv, err := httpapi.NewServer(rep, integrationEmitter)
 			if c.HTTPServerEnabled {
@@ -454,6 +455,7 @@ func initializeAgentAndRun(c *config.Config, logFwCfg config.LogForward) error {
 		os.Exit(1)
 	}
 
+	fbVerbose := c.Log.Level == config.LogLevelTrace && c.Log.HasIncludeFilter(config.TracesFieldName, config.SupervisorTrace)
 	confTempFolder := filepath.Join(c.AgentTempDir, v4.FbConfTempFolderNameDefault)
 	fbIntCfg := v4.NewFBSupervisorConfig(
 		ffManager,
@@ -463,7 +465,7 @@ func initializeAgentAndRun(c *config.Config, logFwCfg config.LogForward) error {
 		c.FluentBitExePath,
 		c.FluentBitNRLibPath,
 		c.FluentBitParsersPath,
-		logFwCfg.FluentBitVerbose,
+		fbVerbose,
 		confTempFolder,
 	)
 
@@ -526,6 +528,7 @@ func newInstancesLookup(cfg v4.ManagerConfig) integration.InstancesLookup {
 	legacyDefinedCommands := v3legacy.NewDefinitionsRepo(v3legacy.LegacyConfig{
 		DefinitionFolders: cfg.DefinitionFolders,
 		Verbose:           cfg.Verbose,
+		TempDir:           cfg.TempDir,
 	})
 	return integration.InstancesLookup{
 		Legacy: legacyDefinedCommands.NewDefinitionCommand,
@@ -595,7 +598,7 @@ func configureLogRedirection(config *config.LogConfig, memLog *wlog.MemLogger) (
 func newLogWriter(config *config.LogConfig) (io.Writer, error) {
 	logRotateConfig := config.Rotate
 	if !logRotateConfig.IsSet() || !logRotateConfig.IsEnabled() {
-		return disk.OpenFile(config.File, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+		return disk.OpenFile(config.File, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o600)
 	}
 
 	rotateCfg := wlog.FileWithRotationConfig{
@@ -705,6 +708,7 @@ func executeIntegrationsDryRunMode(configPath string, ac *config.Config) {
 
 	v4ManagerConfig := v4.NewManagerConfig(
 		ac.Log.VerboseEnabled(),
+		ac.DefaultIntegrationsTempDir,
 		ac.Features,
 		ac.PassthroughEnvironment,
 		integrationConfigPaths,

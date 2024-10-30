@@ -20,6 +20,9 @@ var fbConfigFormat = `{{- range .Inputs }}
     {{- if .SkipLongLines }}
     Skip_Long_Lines {{ .SkipLongLines }}
     {{- end }}
+    {{- if .MultilineParser }}
+    Multiline.Parser {{ .MultilineParser }}
+    {{- end }}
     {{- if .PathKey }}
     Path_Key {{ .PathKey }}
     {{- end }}
@@ -86,7 +89,7 @@ var fbConfigFormat = `{{- range .Inputs }}
     {{- end }}
     {{- if .Records }}
         {{- range $key, $value := .Records }}
-    Record {{ $key }} {{ $value }}
+    Record "{{ $key }}" "{{ $value }}"
         {{- end }}
     {{- end }}
     {{- if .Modifiers }}

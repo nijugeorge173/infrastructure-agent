@@ -28,7 +28,7 @@
                 inventory_hostname is search("debian-stretch") or
                 inventory_hostname is search("debian-jessie") or
                 inventory_hostname is search("debian-buster") or
-                inventory_hostname is search("centos") or
+                inventory_hostname is search("centos[78]") or
                 inventory_hostname is regex("redhat-[78]")
                 )
                 # TODO :point-up: There is no FB pkg for RH9 yet
@@ -43,6 +43,7 @@
           vars:
             log_level: 'debug'
             log_forward: 'true'
+            repo_endpoint: "http://nr-downloads-ohai-staging.s3-website-us-east-1.amazonaws.com/infrastructure_agent"
           when: log_forwader_supported is defined
 
         # Not available for ARM yet
@@ -51,12 +52,6 @@
             name: logging
           when: log_forwader_supported is defined
 
-      always:
-        - name: Final cleanup
-          include_role:
-            name: caos.ansible_roles.infra_agent
-          vars:
-            uninstall: true
 
 - name: log-forwarder-arm64
   hosts: linux_arm64
@@ -95,6 +90,7 @@
           vars:
             log_level: 'debug'
             log_forward: 'true'
+            repo_endpoint: "http://nr-downloads-ohai-staging.s3-website-us-east-1.amazonaws.com/infrastructure_agent"
           when: log_forwader_supported_arm64 is defined
 
         # Not available for ARM yet
@@ -103,12 +99,6 @@
             name: logging
           when: log_forwader_supported_arm64 is defined
 
-      always:
-        - name: Final cleanup
-          include_role:
-            name: caos.ansible_roles.infra_agent
-          vars:
-            uninstall: true
 
 
 - name: log-forwarder-windows
@@ -140,6 +130,44 @@
           vars:
             log_level: 'debug'
             log_forward: 'true'
+            repo_endpoint: "http://nr-downloads-ohai-staging.s3-website-us-east-1.amazonaws.com/infrastructure_agent"
+          when: log_forwader_supported is defined
+
+        # Not available for ARM yet
+        - name: Log forwarder
+          include_role:
+            name: logging
+          when: log_forwader_supported is defined
+
+
+- name: log-forwarder-windows
+  hosts: windows_amd64
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Initial cleanup # Only required for shared infra.
+      include_role:
+        name: cleanup
+
+  tasks:
+    - name: Log forwarder tests suite
+      vars:
+        env_vars:
+
+      block:
+
+        - name: Define variable with supported versions
+          set_fact:
+            log_forwader_supported: true
+          when: inventory_hostname is search("windows")
+
+        - name: install agent
+          include_role:
+            name: caos.ansible_roles.infra_agent
+          vars:
+            log_level: 'debug'
+            log_forward: 'true'
+            repo_endpoint: "http://nr-downloads-ohai-staging.s3-website-us-east-1.amazonaws.com/infrastructure_agent"
           when: log_forwader_supported is defined
 
         # Not available for ARM yet
@@ -149,10 +177,8 @@
           when: log_forwader_supported is defined
 
       always:
-        - name: Final cleanup
+        - name: Final cleanup # Only required for shared infra.
           include_role:
-            name: caos.ansible_roles.infra_agent
-          vars:
-            uninstall: true
+            name: cleanup
 
 ...

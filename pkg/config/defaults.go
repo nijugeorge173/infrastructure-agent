@@ -107,12 +107,14 @@ var (
 	defaultProxyValidateCerts            = false
 	defaultProxyConfigPlugin             = true
 	defaultWinRemovableDrives            = true
-	defaultMetricsMatcherConfig          = IncludeMetricsMap{}
+	defaultIncludeMetricsMatcherConfig   = IncludeMetricsMap{}
+	defaultExcludeMetricsMatcherConfig   = ExcludeMetricsMap{}
 	defaultRegisterMaxRetryBoSecs        = 60
 	defaultNtpPool                       = []string{} // i.e: []string{"time.cloudflare.com"}
 	defaultNtpEnabled                    = false
 	defaultNtpInterval                   = uint(15) // minutes
 	defaultNtpTimeout                    = uint(5)  // seconds
+	defaultProcessContainerDecoration    = true
 )
 
 // Default internal values

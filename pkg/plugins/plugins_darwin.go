@@ -13,6 +13,7 @@ import (
 	"github.com/newrelic/infrastructure-agent/pkg/metrics/storage"
 	"github.com/newrelic/infrastructure-agent/pkg/plugins/ids"
 	"github.com/newrelic/infrastructure-agent/pkg/plugins/proxy"
+	"github.com/newrelic/infrastructure-agent/pkg/sysinfo/hostid"
 )
 
 func RegisterPlugins(a *agent.Agent) error {
@@ -31,6 +32,19 @@ func RegisterPlugins(a *agent.Agent) error {
 		a.RegisterPlugin(NewConfigFilePlugin(*ids.NewPluginID("files", "config"), a.Context))
 	}
 
+	if config.IsIntegrationsOnly {
+		registerIntegrationsOnlyPlugin(a)
+	}
+
+	if isHeartbeatOnlyMode(config) {
+		sender := metricsSender.NewSender(a.Context)
+		heartBeatSampler := metrics.NewHeartbeatSampler(a.Context)
+		sender.RegisterSampler(heartBeatSampler)
+		a.RegisterMetricsSender(sender)
+
+		return nil
+	}
+
 	sender := metricsSender.NewSender(a.Context)
 	procSampler := process.NewProcessSampler(a.Context)
 	storageSampler := storage.NewSampler(a.Context)
@@ -41,7 +55,7 @@ func RegisterPlugins(a *agent.Agent) error {
 	if config.NtpMetrics.Enabled {
 		ntpMonitor = metrics.NewNtp(config.NtpMetrics.Pool, config.NtpMetrics.Timeout, config.NtpMetrics.Interval)
 	}
-	systemSampler := metrics.NewSystemSampler(a.Context, storageSampler, ntpMonitor)
+	systemSampler := metrics.NewSystemSampler(a.Context, storageSampler, ntpMonitor, hostid.NewProviderEnv())
 
 	sender.RegisterSampler(systemSampler)
 	sender.RegisterSampler(storageSampler)

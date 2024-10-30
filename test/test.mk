@@ -1,5 +1,3 @@
-include $(CURDIR)/test/ansible/Ansible.common
-
 PROVISION_HOST_PREFIX := $(shell whoami)-$(shell hostname)
 AWS_ACCOUNT_ID = "018789649883"# CAOS
 LIMIT ?= "testing_hosts"
@@ -13,21 +11,7 @@ else
   ANSIBLE_INVENTORY = $(ANSIBLE_INVENTORY_FOLDER)/$(ANSIBLE_INVENTORY_FILE)
 endif
 
-.PHONY: test/automated/provision
-test/automated/provision: validate-aws-credentials
-ifndef PLATFORM
-	@echo "PLATFORM variable must be provided for test/automated/provision"
-	exit 1
-endif
-ifndef ANSIBLE_PASSWORD_WINDOWS
-	@echo "ANSIBLE_PASSWORD_WINDOWS variable must be provided for test/automated/provision"
-	exit 1
-endif
-	PROVISION_HOST_PREFIX=$(PROVISION_HOST_PREFIX) ANSIBLE_FORKS=$(ANSIBLE_FORKS) PLATFORM=$(PLATFORM) ANSIBLE_INVENTORY=$(ANSIBLE_INVENTORY) $(CURDIR)/test/automated/ansible/provision.sh
-
-.PHONY: test/automated/termination
-test/automated/termination: validate-aws-credentials
-	ansible-playbook -i $(ANSIBLE_INVENTORY) $(CURDIR)/test/automated/ansible/termination.yml
+include $(CURDIR)/test/ansible/common.mk
 
 # Allow running specific harvest tests based on regex (default to .*)
 TESTS_TO_RUN_REGEXP ?= ".*"
@@ -64,11 +48,3 @@ ifndef AGENT_VERSION
 else
 	bash $(CURDIR)/test/packaging/docker.sh
 endif
-
-.PHONY: validate-aws-credentials
-validate-aws-credentials:
-	@ACC_ID="$$(aws sts get-caller-identity --output text|awk '{print $$1}')"; \
-	if [ "$${ACC_ID}" != "$(AWS_ACCOUNT_ID)" ]; then \
-		echo "Invalid AWS account ID. Expected: $(AWS_ACCOUNT_ID), got: $${ACC_ID}."; \
-		exit 1; \
-	fi

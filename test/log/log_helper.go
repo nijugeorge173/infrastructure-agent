@@ -4,8 +4,11 @@
 package log
 
 import (
-	"github.com/sirupsen/logrus"
+	"errors"
+	"regexp"
 	"sync"
+
+	"github.com/sirupsen/logrus" //nolint:depguard
 )
 
 type InMemoryEntriesHook struct {
@@ -30,9 +33,31 @@ func (h *InMemoryEntriesHook) GetEntries() []logrus.Entry {
 	return entries
 }
 
+func (h *InMemoryEntriesHook) EntryWithMessageExists(entry *regexp.Regexp) bool {
+	for _, e := range h.GetEntries() {
+		if entry.MatchString(e.Message) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (h *InMemoryEntriesHook) EntryWithErrorExists(err error) bool {
+	for _, e := range h.GetEntries() {
+		//nolint:forcetypeassert
+		if errors.Is(err, e.Data["error"].(error)) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (h *InMemoryEntriesHook) Fire(entry *logrus.Entry) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	h.entries = append(h.entries, *entry)
+
 	return nil
 }

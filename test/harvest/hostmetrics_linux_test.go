@@ -14,15 +14,16 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/shirou/gopsutil/v3/disk"
-
 	"github.com/newrelic/infrastructure-agent/internal/agent/mocks"
 	"github.com/newrelic/infrastructure-agent/internal/testhelpers"
 	"github.com/newrelic/infrastructure-agent/pkg/config"
 	"github.com/newrelic/infrastructure-agent/pkg/metrics"
 	"github.com/newrelic/infrastructure-agent/pkg/metrics/storage"
+	"github.com/newrelic/infrastructure-agent/pkg/sysinfo/hostid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/shirou/gopsutil/v3/disk"
 )
 
 func TestHostSharedMemory(t *testing.T) {
@@ -32,7 +33,10 @@ func TestHostSharedMemory(t *testing.T) {
 	})
 	storageSampler := storage.NewSampler(ctx)
 
-	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil)
+	hostIDProvider := &hostid.ProviderMock{}
+	hostIDProvider.On("Provide").Return("some-host-id", nil)
+
+	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil, hostid.NewProviderEnv())
 
 	sampleB, _ := systemSampler.Sample()
 	beforeSample := sampleB[0].(*metrics.SystemSample)
@@ -57,43 +61,6 @@ func TestHostSharedMemory(t *testing.T) {
 
 		diffTolerance := 100000
 		assert.True(st, afterSample.MemorySharedBytes >= beforeSample.MemorySharedBytes+float64(bytesToWrite-diffTolerance), "Shared Memory used did not increase enough, SharedMemoryBefore: %f SharedMemoryAfter %f ", beforeSample.MemorySharedBytes, afterSample.MemorySharedBytes)
-	})
-}
-
-func TestHostCachedMemory(t *testing.T) {
-	ctx := new(mocks.AgentContext)
-	ctx.On("Config").Return(&config.Config{
-		MetricsNetworkSampleRate: 1,
-	})
-	storageSampler := storage.NewSampler(ctx)
-
-	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil)
-
-	sampleB, _ := systemSampler.Sample()
-	beforeSample := sampleB[0].(*metrics.SystemSample)
-
-	f, err := ioutil.TempFile("/tmp", "")
-	assert.NoError(t, err)
-	defer os.Remove(f.Name())
-
-	// Force memory spike
-	for i := 0; i < 1e5; i++ {
-		f.Write([]byte("00000000000000000000"))
-	}
-
-	f.Sync()
-	f.Close()
-
-	_, err = ioutil.ReadFile(f.Name())
-
-	assert.NoError(t, err)
-
-	testhelpers.Eventually(t, timeout, func(st require.TestingT) {
-		sampleB, _ = systemSampler.Sample()
-		afterSample := sampleB[0].(*metrics.SystemSample)
-
-		expectedIncreaseBytes := 500000.0
-		assert.True(st, beforeSample.MemoryCachedBytes+expectedIncreaseBytes <= afterSample.MemoryCachedBytes, "CachedMemory used did not increase enough, expected an increase by %f CachedMemoryBefore: %f CachedMemoryAfter %f ", expectedIncreaseBytes, beforeSample.MemoryCachedBytes, afterSample.MemoryCachedBytes)
 	})
 }
 
@@ -137,6 +104,46 @@ func TestHostDisk(t *testing.T) {
 	assert.True(t, *storageSample.UsedBytes+1e4 < sampleA.UsedBytes, "Used bytes did not increase enough, UserBytesBefore: %f UserBytesAfter %f ", *(storageSample.UsedBytes), sampleA.UsedBytes)
 }
 
+func TestHostCachedMemory(t *testing.T) {
+	ctx := new(mocks.AgentContext)
+	ctx.On("Config").Return(&config.Config{
+		MetricsNetworkSampleRate: 1,
+	})
+	storageSampler := storage.NewSampler(ctx)
+
+	hostIDProvider := &hostid.ProviderMock{}
+	hostIDProvider.On("Provide").Return("some-host-id", nil)
+
+	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil, hostIDProvider)
+
+	sampleB, _ := systemSampler.Sample()
+	beforeSample := sampleB[0].(*metrics.SystemSample)
+
+	f, err := ioutil.TempFile("/tmp", "")
+	assert.NoError(t, err)
+	defer os.Remove(f.Name())
+
+	// Force memory spike
+	for i := 0; i < 1e5; i++ {
+		f.Write([]byte("00000000000000000000"))
+	}
+
+	f.Sync()
+	f.Close()
+
+	_, err = ioutil.ReadFile(f.Name())
+
+	assert.NoError(t, err)
+
+	testhelpers.Eventually(t, timeout, func(st require.TestingT) {
+		sampleB, _ = systemSampler.Sample()
+		afterSample := sampleB[0].(*metrics.SystemSample)
+
+		expectedIncreaseBytes := 500000.0
+		assert.True(st, beforeSample.MemoryCachedBytes+expectedIncreaseBytes <= afterSample.MemoryCachedBytes, "CachedMemory used did not increase enough, expected an increase by %f CachedMemoryBefore: %f CachedMemoryAfter %f ", expectedIncreaseBytes, beforeSample.MemoryCachedBytes, afterSample.MemoryCachedBytes)
+	})
+}
+
 func TestHostSlabMemory(t *testing.T) {
 	ctx := new(mocks.AgentContext)
 	ctx.On("Config").Return(&config.Config{
@@ -144,7 +151,10 @@ func TestHostSlabMemory(t *testing.T) {
 	})
 	storageSampler := storage.NewSampler(ctx)
 
-	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil)
+	hostIDProvider := &hostid.ProviderMock{}
+	hostIDProvider.On("Provide").Return("some-host-id", nil)
+
+	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil, hostIDProvider)
 
 	sampleB, _ := systemSampler.Sample()
 	beforeSample := sampleB[0].(*metrics.SystemSample)
@@ -175,7 +185,11 @@ func TestHostBuffersMemory(t *testing.T) {
 		MetricsNetworkSampleRate: 1,
 	})
 	storageSampler := storage.NewSampler(ctx)
-	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil)
+
+	hostIDProvider := &hostid.ProviderMock{}
+	hostIDProvider.On("Provide").Return("some-host-id", nil)
+
+	systemSampler := metrics.NewSystemSampler(ctx, storageSampler, nil, hostIDProvider)
 
 	// clear cache
 	err := ioutil.WriteFile("/proc/sys/vm/drop_caches", []byte("3"), 0o200)
